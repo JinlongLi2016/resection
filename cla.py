@@ -20,16 +20,29 @@ class resection(object):
         self.img_poi = self.get_position(self.img_file)
         self.con_poi = self.get_position(self.contr_file)
 
-        x, y, X, Y, Z = self.get_coords()
-        # 像点坐标为扫描坐标，原点在像片的左上角，单位为pixel。
-        # 应将坐标原点平移至像片中心，作为像平面坐标系（x轴向右、y轴向上），代入共线方程。
-        x = x - 5344/2
-        y = -y + 4008/2
-        self.x, self.y, self.X, self.Y, self.Z = x, y, X, Y, Z
+        self.x, self.y, self.X, self.Y, self.Z = self.get_coords()
+
+        self.img_h = 4008
+        self.img_w = 5344
 
         
-    def iterator(self):
 
+    def iteration_process(self):
+        self.transform_coords()
+        for i in range(100):
+            self.iterator()
+            print(self._Xs, self._Ys, self._Zs)
+
+    def transform_coords(self):
+        # 像点坐标为扫描坐标，原点在像片的左上角，单位为pixel。
+        # 应将坐标原点平移至像片中心，作为像平面坐标系（x轴向右、y轴向上），代入共线方程。
+
+        self.x = self.x - self.img_w/2
+        self.y = -self.y + self.img_h/2
+        
+
+    def iterator(self):
+        # 对这个值进行迭代
         self.B, self.L = self.get_BL(self.x, self.y, self.X, self.Y, self.Z)
         self.requirments()
         self.calc_X()
@@ -45,12 +58,14 @@ class resection(object):
         self.get_Ncc()
 
     def get_coords(self):
+        # 获得 x,y, X,Y,Z 的值
         _, x, y = self.img_poi[0, :]
         _, X, Y, Z = self.con_poi[0, :]
         return x, y, X, Y, Z
 
 
     def get_Wx(self):
+        # 计算/跟新 Wx 的值
         self.Wx = np.array([self._a1**2 + self._a2**2 + self._a3**2 - 1,
                             self._b1**2 + self._b2**2 + self._b3**2 - 1,
                             self._c1**2 + self._c2**2 + self._c3**2 - 1,
@@ -78,7 +93,7 @@ class resection(object):
         return t
 
     def get_BL(self, x, y, X, Y, Z):
-        '''
+        ''' 对于一个点 (x,y) (X,Y,Z)计算/跟新 B L 的值 
         x:
         y:
         X:Y Z 每一个控制点的像方坐标和物方坐标
@@ -164,7 +179,7 @@ class resection(object):
 
         self.dPabc = t - p2
         
-    def givens_rotation(A):
+    def givens_rotation(self, A):
         """Givens变换"""
         (r, c) = np.shape(A)
         Q = np.identity(r)
@@ -199,7 +214,7 @@ class resection(object):
             self._c3 += self.dPabc[11]
 
 class all_resection(resection):
-    """docstring for all_resection"""
+    """将所有的点一起进行平差，利用方向余弦的额后方交会"""
     def __init__(self, img_file, contr_file):
         super(all_resection, self).__init__(img_file, contr_file)
 
@@ -231,11 +246,26 @@ class all_resection(resection):
         tL = tL[1:]
         return tB, tL
         
-a = all_resection('data/像点坐标.txt', 'data/控制点坐标.txt')
-print(a._Xs, a._Ys, a._Zs)
-for i in range(100):
-    a.iterator()
-    print(a._Xs, a._Ys, a._Zs)
+class Tester(all_resection):
+    """docstring for Tester"""
+    def __init__(self, img_file , contr_file ,
+                        x0=None, y0=None, f = None, img_shape:"Height,Width"=None):
+        super(Tester, self).__init__( img_file, contr_file)
+        
+        if img_shape!=None:
+            self.img_h, self.img_w = img_shape        
+        if x0!=None:    self.x0 = x0
+        if y0!=None:    self.y0 = y0
+        if f != None:   self.f = f 
 
-print(a._a1)
+        
+a = all_resection('data/像点坐标.txt', 'data/控制点坐标.txt')
+a = Tester('data/像点坐标.txt', 'data/控制点坐标.txt', x0 = 47.48571, y0= 12.02756, f= 4547.93519, img_shape=(4008,5344))
+# a = Tester('data/像点坐标.txt', 'data/控制点坐标.txt', x0 = 47.48571, y0= 12.02756, f= 4547.93519, img_shape=(400,534))
+a.iteration_process()
+# for i in range(100):
+#     a.iterator()
+#     print(a._Xs, a._Ys, a._Zs)
+
+
 
