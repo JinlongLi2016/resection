@@ -20,12 +20,17 @@ class resection(object):
         self.img_poi = self.get_position(self.img_file)
         self.con_poi = self.get_position(self.contr_file)
 
-        
-    def iterator(self):
         x, y, X, Y, Z = self.get_coords()
+        # 像点坐标为扫描坐标，原点在像片的左上角，单位为pixel。
+        # 应将坐标原点平移至像片中心，作为像平面坐标系（x轴向右、y轴向上），代入共线方程。
+        x = x - 5344/2
+        y = -y + 4008/2
         self.x, self.y, self.X, self.Y, self.Z = x, y, X, Y, Z
 
-        self.B, self.L = self.get_BL(x, y, X, Y, Z)
+        
+    def iterator(self):
+
+        self.B, self.L = self.get_BL(self.x, self.y, self.X, self.Y, self.Z)
         self.requirments()
         self.calc_X()
         self.update_params()
@@ -80,7 +85,7 @@ class resection(object):
         
         '''
         # 对每一个所给的点 (X,Y,Z), '_ba'这几个参数都是不同的
-        X_ba = self._a1*(X-self._Xs  ) + self._b1*(Y-self._Ys) + self._c1*(Z-self._Zs) 
+        X_ba = self._a1*(X-self._Xs) + self._b1*(Y-self._Ys) + self._c1*(Z-self._Zs) 
         Y_ba = self._a2*(X-self._Xs) + self._b2*(Y-self._Ys) + self._c2*(Z-self._Zs)
         Z_ba = self._a3*(X-self._Xs) + self._b3*(Y-self._Ys) + self._c3*(Z-self._Zs)
 
@@ -157,29 +162,41 @@ class resection(object):
 
         p2 = np.dot(p2, p22)
 
-        self.X = t - p2
-    
+        self.dPabc = t - p2
+        
+    def givens_rotation(A):
+        """Givens变换"""
+        (r, c) = np.shape(A)
+        Q = np.identity(r)
+        R = np.copy(A)
+        (rows, cols) = np.tril_indices(r, -1, c)
+        for (row, col) in zip(rows, cols):
+            if R[row, col] != 0:  # R[row, col]=0则c=1,s=0,R、Q不变
+                r_ = np.hypot(R[col, col], R[row, col])  # d
+                c = R[col, col]/r_
+                s = -R[row, col]/r_
+                G = np.identity(r)
+                G[[col, row], [col, row]] = c
+                G[row, col] = s
+                G[col, row] = -s
+                R = np.dot(G, R)  # R=G(n-1,n)*...*G(2n)*...*G(23,1n)*...*G(12)*A
+                Q = np.dot(Q, G.T)  # Q=G(n-1,n).T*...*G(2n).T*...*G(23,1n).T*...*G(12).T
+        return (Q, R)
+
     def update_params(self):
-            # params = [self._Xs, self._Ys, self._Zs,
-            #           self._a1, self._a2, self._a3,
-            #           self._b1, self._b2, self._b3, 
-            #           self._c1, self._c2, self._c3]
-            # i = 0
-            # for pms in params:
-            #     pms += self.X[i]
-            #     i += 1
-            self._Xs += self.X[0]
-            self._Ys += self.X[1]
-            self._Zs += self.X[2]
-            self._a1 += self.X[3]
-            self._a2 += self.X[4]
-            self._a3 += self.X[5]
-            self._b1 += self.X[6]
-            self._b2 += self.X[7]
-            self._b3 += self.X[8]
-            self._c1 += self.X[9]
-            self._c2 += self.X[10]
-            self._c3 += self.X[11]
+
+            self._Xs += self.dPabc[0]
+            self._Ys += self.dPabc[1]
+            self._Zs += self.dPabc[2]
+            self._a1 += self.dPabc[3]
+            self._a2 += self.dPabc[4]
+            self._a3 += self.dPabc[5]
+            self._b1 += self.dPabc[6]
+            self._b2 += self.dPabc[7]
+            self._b3 += self.dPabc[8]
+            self._c1 += self.dPabc[9]
+            self._c2 += self.dPabc[10]
+            self._c3 += self.dPabc[11]
 
 class all_resection(resection):
     """docstring for all_resection"""
@@ -188,10 +205,8 @@ class all_resection(resection):
 
 
     def iterator(self):
-        x, y, X, Y, Z = self.get_coords()
-        self.x, self.y, self.X, self.Y, self.Z = x, y, X, Y, Z
 
-        self.B, self.L = self.get_BL(x, y, X, Y, Z)
+        self.B, self.L = self.get_BL(self.x, self.y, self.X, self.Y, self.Z)
         self.requirments()
         self.calc_X()
         self.update_params()
@@ -221,5 +236,6 @@ print(a._Xs, a._Ys, a._Zs)
 for i in range(100):
     a.iterator()
     print(a._Xs, a._Ys, a._Zs)
+
 print(a._a1)
 
