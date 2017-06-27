@@ -57,7 +57,7 @@ class resection(object):
         
 
     def iterator(self):
-        # 对这个值进行迭代
+        # 对这+++个值进行迭代
         self.B, self.L = self.get_BL(self.x, self.y, self.X, self.Y, self.Z)
         self.requirments()
         self.calc_X()
@@ -166,9 +166,11 @@ class resection(object):
              [0, 0, 0, self._a3, 0, self._a1, self._b3, 0, self._b1, self._c3, 0, self._c1],
              [0, 0, 0, 0, self._a3, self._a2, 0, self._b3, self._b2, 0, self._c3, self._c2]]
         self.C = np.array(t)
+        return np.array(t)
     
     def get_Nbb(self, P=None):
         self.Nbb = np.dot(self.B.T, self.B)
+        return self.Nbb
 
     def get_Ncc(self):#C, Nbb
         t = np.linalg.inv(self.Nbb)
@@ -274,10 +276,79 @@ class Tester(all_resection):
         if y0!=None:    self.y0 = y0
         if f != None:   self.f = f 
 
-        
+class GivensTester(Tester):
+    """docstring for GivensTester"""
+    def __init__(self,  img_file , contr_file ,
+                        x0=None, y0=None, f = None, img_shape:"Height,Width"=None):
+        super(GivensTester, self).__init__(img_file , contr_file, x0, y0, f , img_shape)
+    
+     def iteration_process(self):
+        self.transform_coords()
+        for i in range(100):
+            self.iterator()
+            print(self._Xs, self._Ys, self._Zs)
+
+        print("Calculating o p k ...")
+        w = np.arcsin(-self._b3)
+        cosw = np.cos(w)
+
+        sinphi = - self._a3 / cosw
+        phi = np.arcsin(sinphi)
+
+        cosk = self._b2 / cosw
+        k = np.arccos(cosk)
+        print("complete o p k ")
+        ob = np.array((self._Xs, self._Ys, self._Zs,phi, w, k)).reshape((1, 6))
+        np.savetxt("内方位元素.txt", ob, fmt='%.5f', delimiter = '  ' ,
+            header='Xs         Ys         Zs         phi      omega    kappa')        
+    
+    def iterator(self):
+        self.B, self.L = self.get_BL(self.x, self.y, self.X, self.Y, self.Z)
+        self.requirments()
+        self.calc_X()
+        self.update_params()
+
+    def calc_X(self):
+
+        t1 = np.hstack((self.Nbb , self.C.T))
+
+        t2 = np.hstack((self.C, np.zeros((6, 6))))
+
+        big_B = np.vstack((t1, t2))
+        Q, R = self.givens_rotation(big_B)
+
+        L = np.concatenate((self.W, -self.Wx))
+        QtL = np.dot(Q.T, L)
+        inv_R = np.linalg.inv(R)
+        X = np.dot(inv_R, QtL)
+        self.dPabc = X[0:12]
+
+    def givens_rotation(self, A):
+        """Givens变换"""
+        (r, c) = np.shape(A)
+        Q = np.identity(r)
+        R = np.copy(A)
+        (rows, cols) = np.tril_indices(r, -1, c)
+        for (row, col) in zip(rows, cols):
+            if R[row, col] != 0:  # R[row, col]=0则c=1,s=0,R、Q不变
+                r_ = np.hypot(R[col, col], R[row, col])  # d
+                c = R[col, col]/r_
+                s = -R[row, col]/r_
+                G = np.identity(r)
+                G[[col, row], [col, row]] = c
+                G[row, col] = s
+                G[col, row] = -s
+                R = np.dot(G, R)  # R=G(n-1,n)*...*G(2n)*...*G(23,1n)*...*G(12)*A
+                Q = np.dot(Q, G.T)  # Q=G(n-1,n).T*...*G(2n).T*...*G(23,1n).T*...*G(12).T
+        return (Q, R)
+
+
+
 a = all_resection('data/像点坐标.txt', 'data/控制点坐标.txt')
 a = Tester('data/像点坐标.txt', 'data/控制点坐标.txt', x0 = 47.48571, y0= 12.02756, f= 4547.93519, img_shape=(4008,5344))
 # a = Tester('data/像点坐标.txt', 'data/控制点坐标.txt', x0 = 47.48571, y0= 12.02756, f= 4547.93519, img_shape=(400,534))
+# a.iteration_process()
+a = GivensTester('data/像点坐标.txt', 'data/控制点坐标.txt', x0 = 47.48571, y0= 12.02756, f= 4547.93519, img_shape=(4008,5344))
 a.iteration_process()
 # for i in range(100):
 #     a.iterator()
