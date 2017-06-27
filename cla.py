@@ -33,6 +33,21 @@ class resection(object):
             self.iterator()
             print(self._Xs, self._Ys, self._Zs)
 
+        print("Calculating o p k ...")
+        w = np.arcsin(-self._b3)
+        cosw = np.cos(w)
+
+        sinphi = - self._a3 / cosw
+        phi = np.arcsin(sinphi)
+
+        cosk = self._b2 / cosw
+        k = np.arccos(cosk)
+        print("complete o p k ")
+        ob = np.array((self._Xs, self._Ys, self._Zs,phi, w, k)).reshape((1, 6))
+        np.savetxt("内方位元素.txt", ob, fmt='%.5f', delimiter = '  ' ,
+            header='Xs         Ys         Zs         phi      omega    kappa')
+
+
     def transform_coords(self):
         # 像点坐标为扫描坐标，原点在像片的左上角，单位为pixel。
         # 应将坐标原点平移至像片中心，作为像平面坐标系（x轴向右、y轴向上），代入共线方程。
@@ -90,6 +105,7 @@ class resection(object):
         # return [1.1, 1.3, 1.5, 1.1, 1, 1, 1, 1, 1.5, 1000, 1000, 1000]
         # return [1, 0, 0, 0, 1, 0, 0, 0, 1, 1000, 1000, 1000]
         return [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]
+
         return t
 
     def get_BL(self, x, y, X, Y, Z):
