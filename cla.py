@@ -217,7 +217,8 @@ class resection(object):
         return (Q, R)
 
     def update_params(self):
-
+            if(max(self.dPabc) < 1e-3):
+                print('convergenced...')
             self._Xs += self.dPabc[0]
             self._Ys += self.dPabc[1]
             self._Zs += self.dPabc[2]
@@ -282,11 +283,11 @@ class GivensTester(Tester):
                         x0=None, y0=None, f = None, img_shape:"Height,Width"=None):
         super(GivensTester, self).__init__(img_file , contr_file, x0, y0, f , img_shape)
     
-     def iteration_process(self):
+    def iteration_process(self):
         self.transform_coords()
         for i in range(100):
             self.iterator()
-            print(self._Xs, self._Ys, self._Zs)
+            #print(self._Xs, self._Ys, self._Zs)
 
         print("Calculating o p k ...")
         w = np.arcsin(-self._b3)
@@ -307,7 +308,7 @@ class GivensTester(Tester):
         self.requirments()
         self.calc_X()
         self.update_params()
-
+        
     def calc_X(self):
 
         t1 = np.hstack((self.Nbb , self.C.T))
