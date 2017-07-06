@@ -347,13 +347,10 @@ class GivensTester(Tester):
 
 a = all_resection('data/像点坐标.txt', 'data/控制点坐标.txt')
 a = Tester('data/像点坐标.txt', 'data/控制点坐标.txt', x0 = 47.48571, y0= 12.02756, f= 4547.93519, img_shape=(4008,5344))
-# a = Tester('data/像点坐标.txt', 'data/控制点坐标.txt', x0 = 47.48571, y0= 12.02756, f= 4547.93519, img_shape=(400,534))
-# a.iteration_process()
+
 a = GivensTester('data/像点坐标.txt', 'data/控制点坐标.txt', x0 = 47.48571, y0= 12.02756, f= 4547.93519, img_shape=(4008,5344))
 a.iteration_process()
-# for i in range(100):
-#     a.iterator()
-#     print(a._Xs, a._Ys, a._Zs)
+
 
 
 
