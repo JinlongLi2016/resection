@@ -157,7 +157,7 @@ class resection(object):
         b2c = -(y-self.y0)*(Z-self._Zs) / Z_ba
 
         t = [[b11, b12, b13, b14, b15, b16, b17, b18, b19, b1a, b1b, b1c], 
-                [b21, b22, b23, b24, b25, b26, b17, b28, b29, b2a, b2b, b2c]]
+                [b21, b22, b23, b24, b25, b26, b27, b28, b29, b2a, b2b, b2c]]
         
         l1 = (x-self.x0) + self.f * X_ba / Z_ba
         l2 = (y-self.y0) + self.f * Y_ba / Z_ba
