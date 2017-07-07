@@ -12,7 +12,7 @@ import numpy as np
 import random as rd 
 
 class resection(object):
-    """docstring for resection"""
+    """The base class of resection(for a single point(x,y,X, Y, Z))"""
     def __init__(self, img_file, contr_file):
         super(resection, self).__init__()
         self.img_file = img_file
@@ -38,6 +38,7 @@ class resection(object):
         
 
     def iteration_process(self):
+        '''Wrap the iteration process'''
         self.transform_coords()
         for i in range(100):
             self.iterator()
@@ -67,7 +68,7 @@ class resection(object):
         
 
     def iterator(self):
-        # 对这+++个值进行迭代
+        '''A single step of the iteration process'''
         self.B, self.L = self.get_BL(self.x, self.y, self.X, self.Y, self.Z)
         self.requirments()
         self.calc_X()
@@ -75,7 +76,6 @@ class resection(object):
 
     def requirments(self):
         '''在调用 calc_X() 之前需要进行的计算'''
-
         self.get_C()
         self.W = np.dot(self.B.T, self.L)
         self.get_Wx()
@@ -112,10 +112,7 @@ class resection(object):
 
     def guess_params(self):
         t = [rd.random() for i in range(12)]
-        # return [1.1, 1.3, 1.5, 1.1, 1, 1, 1, 1, 1.5, 1000, 1000, 1000]
-        # return [1, 0, 0, 0, 1, 0, 0, 0, 1, 1000, 1000, 1000]
         return [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]
-
         return t
 
     def get_BL(self, x, y, X, Y, Z):
@@ -354,13 +351,10 @@ class GivensTester(Tester):
         return (Q, R)
 
 
+if __name__ == '__main__':
+    
+    # a = all_resection('data/像点坐标.txt', 'data/控制点坐标.txt')
+    # a = Tester('data/像点坐标.txt', 'data/控制点坐标.txt', x0 = 47.48571, y0= 12.02756, f= 4547.93519, img_shape=(4008,5344))
 
-a = all_resection('data/像点坐标.txt', 'data/控制点坐标.txt')
-a = Tester('data/像点坐标.txt', 'data/控制点坐标.txt', x0 = 47.48571, y0= 12.02756, f= 4547.93519, img_shape=(4008,5344))
-
-a = GivensTester('data/像点坐标.txt', 'data/控制点坐标.txt', x0 = 47.48571, y0= 12.02756, f= 4547.93519, img_shape=(4008,5344))
-a.iteration_process()
-
-
-
-
+    a = GivensTester('data/像点坐标.txt', 'data/控制点坐标.txt', x0 = 47.48571, y0= 12.02756, f= 4547.93519, img_shape=(4008,5344))
+    a.iteration_process()
