@@ -1,3 +1,13 @@
+"""
+===========
+matcher.py
+===========
+后方交会(https://github.com/JinlongLi2016/resection)
+"""
+__author__ = 'JinlongLi2016'
+__licence__ = 'MIT'
+__versin__ = '1.0'
+
 import numpy as np 
 import random as rd 
 
@@ -301,7 +311,7 @@ class GivensTester(Tester):
         print("complete o p k ")
         ob = np.array((self._Xs, self._Ys, self._Zs,phi, w, k)).reshape((1, 6))
         np.savetxt("内方位元素.txt", ob, fmt='%.5f', delimiter = '  ' ,
-            header='Xs         Ys         Zs         phi      omega    kappa')        
+            header='Xs(mm)     Ys(mm)     Zs(mm)     phi(rad) omega(rad) kappa(rad)')        
     
     def iterator(self):
         self.B, self.L = self.get_BL(self.x, self.y, self.X, self.Y, self.Z)
